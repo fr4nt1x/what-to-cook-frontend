@@ -11,13 +11,8 @@
 
     <section v-else>
       <div v-if="loading">Loading...</div>
-
-      <div v-else v-for="(meal, index) in info" class="meal" :key="index">
-        {{ index }}: {{ meal.name }}:
-        <span class="lighten">
-          <span v-html="meal.difficulty"></span> {{ meal.count }}
-          {{ meal.last_date }}
-        </span>
+      <div>
+        <b-table striped hover :items="info"></b-table>
       </div>
     </section>
   </div>
@@ -26,7 +21,7 @@
 <script>
 import axios from "axios";
 export default {
-  name: "HelloWorld",
+  name: "WhatToCook",
   props: {
     msg: String,
   },
@@ -36,11 +31,6 @@ export default {
       loading: true,
       errored: false,
     };
-  },
-  filters: {
-    currencydecimal(value) {
-      return value.toFixed(2);
-    },
   },
   mounted() {
     axios
