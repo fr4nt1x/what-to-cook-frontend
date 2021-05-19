@@ -12,7 +12,7 @@
     <section v-else>
       <div v-if="loading">Loading...</div>
       <div>
-        <b-table striped hover :items="info"></b-table>
+        <b-table striped hover :items="computedMeals"></b-table>
       </div>
     </section>
   </div>
@@ -20,23 +20,65 @@
 
 <script>
 import axios from "axios";
+
 export default {
-  name: "WhatToCook",
+  name: "Suggestions",
   props: {
     msg: String,
   },
   data() {
     return {
-      info: null,
+      allMeals: null,
       loading: true,
       errored: false,
     };
+  },
+  computed: {
+    computedMeals: function () {
+      var result = Array();
+      var meals = this.allMeals;
+      function filterMeals(difficulty) {
+        console.log(meals.filter((meal) => meal.difficulty === difficulty));
+        return meals.filter((meal) => meal.difficulty === difficulty);
+      }
+
+      function getOldestMeal(meals) {
+        var parts;
+        var usedMeal = null;
+        var usedDate = null;
+        var currentDate;
+        for (var i = 0; i < meals.length; i++) {
+          parts = meals[i].last_date.split("-");
+          currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+          if (i == 0) {
+            usedMeal = meals[0];
+            usedDate = currentDate;
+          } else if (usedDate > currentDate) {
+            usedMeal = meals[i];
+            usedDate = currentDate;
+          }
+        }
+        return usedMeal;
+      }
+
+      var currentMeals;
+      const maxDifficulty = 4;
+      for (var i = 1; i <= maxDifficulty; i++) {
+        currentMeals = filterMeals(i);
+        if (currentMeals.length > 0) {
+          result.push(getOldestMeal(currentMeals));
+        }
+      }
+
+      return result;
+    },
   },
   mounted() {
     axios
       .get("http://localhost:8000/all_meals")
       .then((response) => {
-        this.info = response.data.meals;
+        this.allMeals = response.data.meals;
       })
       .catch((error) => {
         console.log(error);
