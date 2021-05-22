@@ -12,7 +12,31 @@
     <section v-else>
       <div v-if="loading">Loading...</div>
       <div>
-        <b-table striped hover :items="computedMeals"></b-table>
+        <b-button-group size="sm">
+          <b-button
+            v-for="tag in allTags"
+            :pressed.sync="tagsPressed[tag]"
+            pill
+            variant="primary"
+            :key="tag"
+            >{{ tag }}</b-button
+          >
+        </b-button-group>
+      </div>
+      <div>
+        <b-table striped hover :items="computedMeals" :fields="mealFields">
+          <template #cell(tags)="data">
+            <b-button
+              size="sm"
+              v-for="tag in data.item.tags"
+              :pressed.sync="tagsPressed[tag]"
+              pill
+              variant="primary"
+              :key="tag"
+              >{{ tag }}</b-button
+            >
+          </template>
+        </b-table>
       </div>
     </section>
   </div>
@@ -26,123 +50,127 @@ export default {
   props: {
     msg: String,
   },
+  methods: {
+    filterMealsByTags: function (meals, tags) {
+      var filteredMeals = [];
+      var mealHasAllTags = false;
+      for (var i = 0; i < meals.length; i++) {
+        mealHasAllTags = true;
+        for (var j = 0; j < tags.length; j++) {
+          if (!meals[i].tags.includes(tags[j])) {
+            mealHasAllTags = false;
+          }
+        }
+        if (mealHasAllTags) {
+          filteredMeals.push(meals[i]);
+        }
+      }
+      return filteredMeals;
+    },
+    getOldestNMeals: function (meals, n) {
+      var parts;
+      var usedMeals = []; //sorted by oldest to newest
+      var usedDates = [];
+      var currentDate;
+      var currentMeal;
+      const mealsLength = meals.length;
+      if (n > mealsLength) {
+        console.warn(
+          "Not enough meals for given amount to show, using number of all meals."
+        );
+        n = mealsLength;
+      }
+
+      var usedMealsLength = usedMeals.length;
+      for (var i = 0; i < mealsLength; i++) {
+        usedMealsLength = usedMeals.length;
+        currentMeal = meals[i];
+        parts = currentMeal.last_date.split("-");
+        currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+        if (usedMealsLength < n) {
+          if (usedMealsLength == 0) {
+            usedMeals.push(currentMeal);
+            usedDates.push(currentDate);
+          } else {
+            var pushed = false;
+            for (var j = 0; j < usedMealsLength; j++) {
+              if (usedDates[j] >= currentDate) {
+                //Meal is older than meal j
+                pushed = true;
+                usedMeals.splice(j, 0, currentMeal);
+                usedDates.splice(j, 0, currentDate);
+                break;
+              }
+            }
+            if (!pushed) {
+              //Meal is newer than all other meals
+              usedMeals.push(currentMeal);
+              usedDates.push(currentDate);
+            }
+          }
+        } else {
+          for (j = 0; j < usedMealsLength; j++) {
+            if (usedDates[j] >= currentDate) {
+              //Meal is older than meal j
+              usedMeals.splice(j, 0, currentMeal);
+              usedDates.splice(j, 0, currentDate);
+              usedMeals.pop();
+              usedDates.pop();
+              break;
+            }
+          }
+        }
+      }
+      return usedMeals;
+    },
+  },
   data() {
     return {
+      mealFields: ["name", "tags", "count", "last_date"],
       allMeals: [],
       loading: true,
       errored: false,
-      tagsToFilter: [],
+      tagsPressed: {},
     };
   },
   computed: {
     allTags: function () {
       var meals = this.allMeals;
       var tags = [];
+      var allTags = [];
       for (var i = 0; i < meals.length; i++) {
         if (meals[i].tags.length > 0) {
           tags = tags.concat(meals[i].tags);
         }
       }
+
       let unique = [...new Set(tags)];
-      return unique;
+      unique.forEach((tag) => {
+        allTags.push(tag);
+        //For button :pressed.sync usage the synced prop must be in the datafield
+        this.$set(this.tagsPressed, tag, false);
+      });
+      return allTags;
+    },
+    tagsToFilter: function () {
+      return this.allTags.filter((tag) => {
+        return this.tagsPressed[tag];
+      });
     },
     computedMeals: function () {
       var result = Array();
       var meals = this.allMeals;
 
-      function filterMealsByTag(tag) {
-        return meals.filter((meal) => tag in meal.tags);
-      }
-
-      function getOldestNMeals(meals, n) {
-        var parts;
-        var usedMeals = []; //sorted by oldest to newest
-        var usedDates = [];
-        var currentDate;
-        var currentMeal;
-        const mealsLength = meals.length;
-        if (n > mealsLength) {
-          console.warn(
-            "Not enough meals for given amount to show, using number of all meals."
-          );
-          n = mealsLength;
-        }
-
-        var usedMealsLength = usedMeals.length;
-        for (var i = 0; i < mealsLength; i++) {
-          usedMealsLength = usedMeals.length;
-          currentMeal = meals[i];
-          parts = currentMeal.last_date.split("-");
-          currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
-
-          if (usedMealsLength < n) {
-            if (usedMealsLength == 0) {
-              usedMeals.push(currentMeal);
-              usedDates.push(currentDate);
-            } else {
-              var pushed = false;
-              for (var j = 0; j < usedMealsLength; j++) {
-                if (usedDates[j] >= currentDate) {
-                  //Meal is older than meal j
-                  pushed = true;
-                  usedMeals.splice(j, 0, currentMeal);
-                  usedDates.splice(j, 0, currentDate);
-                  break;
-                }
-              }
-              if (!pushed) {
-                //Meal is newer than all other meals
-                usedMeals.push(currentMeal);
-                usedDates.push(currentDate);
-              }
-            }
-          } else {
-            for (j = 0; j < usedMealsLength; j++) {
-              if (usedDates[j] >= currentDate) {
-                //Meal is older than meal j
-                usedMeals.splice(j, 0, currentMeal);
-                usedDates.splice(j, 0, currentDate);
-                usedMeals.pop();
-                usedDates.pop();
-                break;
-              }
-            }
-          }
-        }
-        return usedMeals;
-      }
-
-      function getOldestMeal(meals) {
-        var parts;
-        var usedMeal = null;
-        var usedDate = null;
-        var currentDate;
-        for (var i = 0; i < meals.length; i++) {
-          parts = meals[i].last_date.split("-");
-          currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
-
-          if (i == 0) {
-            usedMeal = meals[0];
-            usedDate = currentDate;
-          } else if (usedDate > currentDate) {
-            usedMeal = meals[i];
-            usedDate = currentDate;
-          }
-        }
-        return usedMeal;
-      }
-
       var currentMeals;
       const tagsToFilterLength = this.tagsToFilter.length;
       if (tagsToFilterLength > 0) {
-        for (var i = 0; i < tagsToFilterLength; i++) {
-          currentMeals = filterMealsByTag(this.allTags[i]);
-          if (currentMeals.length > 0) {
-            result.push(getOldestMeal(currentMeals));
-          }
+        currentMeals = this.filterMealsByTags(meals, this.tagsToFilter);
+        if (currentMeals.length > 0) {
+          result = this.getOldestNMeals(currentMeals, 5);
         }
       } else {
-        result = getOldestNMeals(meals, 10);
+        result = this.getOldestNMeals(meals, 10);
       }
       return result;
     },
