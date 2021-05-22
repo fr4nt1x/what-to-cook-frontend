@@ -28,18 +28,88 @@ export default {
   },
   data() {
     return {
-      allMeals: null,
+      allMeals: [],
       loading: true,
       errored: false,
+      tagsToFilter: [],
     };
   },
   computed: {
+    allTags: function () {
+      var meals = this.allMeals;
+      var tags = [];
+      for (var i = 0; i < meals.length; i++) {
+        if (meals[i].tags.length > 0) {
+          tags = tags.concat(meals[i].tags);
+        }
+      }
+      let unique = [...new Set(tags)];
+      return unique;
+    },
     computedMeals: function () {
       var result = Array();
       var meals = this.allMeals;
-      function filterMeals(difficulty) {
-        console.log(meals.filter((meal) => meal.difficulty === difficulty));
-        return meals.filter((meal) => meal.difficulty === difficulty);
+
+      function filterMealsByTag(tag) {
+        return meals.filter((meal) => tag in meal.tags);
+      }
+
+      function getOldestNMeals(meals, n) {
+        var parts;
+        var usedMeals = []; //sorted by oldest to newest
+        var usedDates = [];
+        var currentDate;
+        var currentMeal;
+        const mealsLength = meals.length;
+        if (n > mealsLength) {
+          console.warn(
+            "Not enough meals for given amount to show, using number of all meals."
+          );
+          n = mealsLength;
+        }
+
+        var usedMealsLength = usedMeals.length;
+        for (var i = 0; i < mealsLength; i++) {
+          usedMealsLength = usedMeals.length;
+          currentMeal = meals[i];
+          parts = currentMeal.last_date.split("-");
+          currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+          if (usedMealsLength < n) {
+            if (usedMealsLength == 0) {
+              usedMeals.push(currentMeal);
+              usedDates.push(currentDate);
+            } else {
+              var pushed = false;
+              for (var j = 0; j < usedMealsLength; j++) {
+                if (usedDates[j] >= currentDate) {
+                  //Meal is older than meal j
+                  pushed = true;
+                  usedMeals.splice(j, 0, currentMeal);
+                  usedDates.splice(j, 0, currentDate);
+                  break;
+                }
+              }
+              if (!pushed) {
+                //Meal is newer than all other meals
+                usedMeals.push(currentMeal);
+                usedDates.push(currentDate);
+              }
+            }
+          } else {
+            for (j = 0; j < usedMealsLength; j++) {
+              if (usedDates[j] >= currentDate) {
+                //Meal is older than meal j
+                usedMeals.splice(j, 0, currentMeal);
+                usedDates.splice(j, 0, currentDate);
+                usedMeals.pop();
+                usedDates.pop();
+                break;
+              }
+            }
+          }
+        }
+        return usedMeals;
       }
 
       function getOldestMeal(meals) {
@@ -63,14 +133,17 @@ export default {
       }
 
       var currentMeals;
-      const maxDifficulty = 4;
-      for (var i = 1; i <= maxDifficulty; i++) {
-        currentMeals = filterMeals(i);
-        if (currentMeals.length > 0) {
-          result.push(getOldestMeal(currentMeals));
+      const tagsToFilterLength = this.tagsToFilter.length;
+      if (tagsToFilterLength > 0) {
+        for (var i = 0; i < tagsToFilterLength; i++) {
+          currentMeals = filterMealsByTag(this.allTags[i]);
+          if (currentMeals.length > 0) {
+            result.push(getOldestMeal(currentMeals));
+          }
         }
+      } else {
+        result = getOldestNMeals(meals, 10);
       }
-
       return result;
     },
   },
