@@ -24,16 +24,39 @@
         </b-button-group>
       </div>
       <div>
-        <b-table striped hover :items="computedMeals" :fields="mealFields">
+        <b-table
+          fixed
+          striped
+          hover
+          :items="computedMeals"
+          :fields="mealFields"
+        >
           <template #cell(tags)="data">
-            <b-button
-              size="sm"
-              v-for="tag in data.item.tags"
-              :pressed.sync="tagsPressed[tag]"
-              pill
-              variant="primary"
-              :key="tag"
-              >{{ tag }}</b-button
+            <div>
+              <b-button
+                size="sm"
+                v-for="tag in data.item.tags"
+                :pressed.sync="tagsPressed[tag]"
+                pill
+                variant="primary"
+                :key="tag"
+                >{{ tag }}</b-button
+              >
+            </div>
+            <div v-if="!mealRowTagsDisabled[data.item.name]">
+              <b-form-tags
+                input-id="tags-basic"
+                v-model="data.item.tags"
+                :disabled="mealRowTagsDisabled[data.item.name]"
+                tag-pills
+                @input="onTagChange($event, data.item)"
+              ></b-form-tags>
+              <b-button :pressed.sync="mealRowTagsDisabled[data.item.name]"
+                >Close</b-button
+              >
+            </div>
+            <b-button v-else :pressed.sync="mealRowTagsDisabled[data.item.name]"
+              >Edit tags</b-button
             >
           </template>
         </b-table>
@@ -124,6 +147,18 @@ export default {
       }
       return usedMeals;
     },
+    onTagChange: function (event, meal) {
+      console.log(event);
+      console.log(JSON.stringify(meal));
+      axios
+        .post("http://localhost:8000/change_tags_for_meal", meal)
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    },
   },
   data() {
     return {
@@ -132,6 +167,8 @@ export default {
       loading: true,
       errored: false,
       tagsPressed: {},
+      mealRowTagsDisabled: {},
+      numberOfMealsShown: 5,
     };
   },
   computed: {
@@ -167,10 +204,13 @@ export default {
       if (tagsToFilterLength > 0) {
         currentMeals = this.filterMealsByTags(meals, this.tagsToFilter);
         if (currentMeals.length > 0) {
-          result = this.getOldestNMeals(currentMeals, 5);
+          result = this.getOldestNMeals(currentMeals, this.numberOfMealsShown);
         }
       } else {
-        result = this.getOldestNMeals(meals, 10);
+        result = this.getOldestNMeals(meals, this.numberOfMealsShown);
+      }
+      for (var i = 0; i < result.length; i++) {
+        this.$set(this.mealRowTagsDisabled, result[i].name, true);
       }
       return result;
     },
