@@ -209,8 +209,12 @@ export default {
       let unique = [...new Set(tags)];
       unique.forEach((tag) => {
         allTags.push(tag);
-        //For button :pressed.sync usage the synced prop must be in the datafield
-        this.$set(this.tagsPressed, tag, false);
+        if (tag in this.tagsPressed) {
+          //For button :pressed.sync usage the synced prop must be in the datafield
+          this.$set(this.tagsPressed, tag, this.tagsPressed[tag]);
+        } else {
+          this.$set(this.tagsPressed, tag, false);
+        }
       });
       return allTags;
     },
