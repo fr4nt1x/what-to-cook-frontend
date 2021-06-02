@@ -98,6 +98,7 @@ export default {
       var usedMeals = []; //sorted by oldest to newest
       var usedDates = [];
       var currentDate;
+      const oldestDate = new Date(1970, 0, 0);
       var currentMeal;
       const mealsLength = meals.length;
       if (n > mealsLength) {
@@ -111,8 +112,12 @@ export default {
       for (var i = 0; i < mealsLength; i++) {
         usedMealsLength = usedMeals.length;
         currentMeal = meals[i];
-        parts = currentMeal.last_date.split("-");
-        currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (currentMeal.last_dates.length == 0) {
+          currentDate = oldestDate;
+        } else {
+          parts = currentMeal.last_dates[0].split("-");
+          currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        }
 
         if (usedMealsLength < n) {
           if (usedMealsLength == 0) {
@@ -148,6 +153,11 @@ export default {
           }
         }
       }
+      for (j = 0; j < usedMealsLength; j++) {
+        if (usedDates[j] == oldestDate) {
+          usedMeals[j].last_dates = [];
+        }
+      }
       return usedMeals;
     },
     onTagChange: function (event, meal) {
@@ -165,7 +175,7 @@ export default {
   },
   data() {
     return {
-      mealFields: ["name", "tags", "count", "last_date"],
+      mealFields: ["name", "tags", "count", "last_dates"],
       allMeals: [],
       loading: true,
       errored: false,
