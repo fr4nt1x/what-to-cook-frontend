@@ -12,6 +12,19 @@
     <section v-else>
       <div v-if="loading">Loading...</div>
       <div>
+        <b-calendar v-model="selectedDate"></b-calendar>
+        <div>
+          <b-button
+            size="sm"
+            variant="outline-primary"
+            class="ml-auto"
+            @click="setToday"
+            >Set Today</b-button
+          >
+        </div>
+      </div>
+
+      <div>
         <b-button-group size="sm">
           <b-button
             v-for="tag in allTags"
@@ -22,9 +35,6 @@
             >{{ tag }}</b-button
           >
         </b-button-group>
-      </div>
-      <template> </template>
-      <div>
         <b-table
           fixed
           striped
@@ -73,6 +83,16 @@
               >
             </div>
           </template>
+          <template #cell(add)="data">
+            <b-button
+              type="submit"
+              size="sm"
+              variant="outline-primary"
+              class="ml-auto"
+              @click="addMealToCurrentDate(data.item)"
+              >Add Meal</b-button
+            >
+          </template>
         </b-table>
       </div>
     </section>
@@ -88,6 +108,29 @@ export default {
     msg: String,
   },
   methods: {
+    addMealToCurrentDate: function (meal) {
+      var newLastDates = meal.last_dates;
+      newLastDates.push(this.selectedDate);
+      var uniqueDates = [...new Set(newLastDates)].sort();
+
+      meal.last_dates = uniqueDates;
+      axios
+        .post("http://localhost:8000/update_dates_for_meal", meal)
+        .then(function (response) {
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+      console.log(meal);
+    },
+    setToday: function () {
+      const now = new Date();
+      let cDay = now.getDate();
+      let cMonth = now.getMonth() + 1;
+      let cYear = now.getFullYear();
+      this.selectedDate = cYear + "-" + cMonth + "-" + cDay;
+    },
     filterMealsByTags: function (meals, tags) {
       var filteredMeals = [];
       var mealHasAllTags = false;
@@ -126,7 +169,7 @@ export default {
         if (currentMeal.last_dates.length == 0) {
           currentDate = oldestDate;
         } else {
-          parts = currentMeal.last_dates[0].split("-");
+          parts = currentMeal.last_dates.sort()[0].split("-");
           currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
         }
 
@@ -186,11 +229,12 @@ export default {
   },
   data() {
     return {
-      mealFields: ["name", "tags", "count", "last_dates"],
+      mealFields: ["name", "tags", "count", "last_dates", "add"],
       allMeals: [],
       loading: true,
       errored: false,
       tagsPressed: {},
+      selectedDate: "",
       mealRowTagsEnabled: {},
       numberOfMealsShown: 5,
     };
@@ -244,6 +288,7 @@ export default {
     },
   },
   mounted() {
+    this.setToday();
     axios
       .get("http://localhost:8000/all_meals")
       .then((response) => {
