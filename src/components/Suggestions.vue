@@ -23,6 +23,7 @@
           >
         </b-button-group>
       </div>
+      <template> </template>
       <div>
         <b-table
           fixed
@@ -43,21 +44,23 @@
                 >{{ tag }}</b-button
               >
             </div>
-            <div v-if="!mealRowTagsDisabled[data.item.name]">
-              <b-form-tags
-                input-id="tags-basic"
-                v-model="data.item.tags"
-                :disabled="mealRowTagsDisabled[data.item.name]"
-                tag-pills
-                @input="onTagChange($event, data.item)"
-              ></b-form-tags>
-              <b-button :pressed.sync="mealRowTagsDisabled[data.item.name]"
-                >Close</b-button
+            <div>
+              <b-collapse v-bind:id="data.item.name" class="mt-2">
+                <b-form-tags
+                  input-id="tags-basic"
+                  v-model="data.item.tags"
+                  tag-pills
+                  @input="onTagChange($event, data.item)"
+                ></b-form-tags>
+              </b-collapse>
+              <b-button
+                v-b-toggle:[data.item.name]
+                variant="secondary"
+                pill
+                size="sm"
+                >Toggle Collapse</b-button
               >
             </div>
-            <b-button v-else :pressed.sync="mealRowTagsDisabled[data.item.name]"
-              >Edit tags</b-button
-            >
           </template>
         </b-table>
       </div>
