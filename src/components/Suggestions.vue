@@ -45,20 +45,31 @@
               >
             </div>
             <div>
-              <b-collapse v-bind:id="data.item.name" class="mt-2">
+              <b-collapse
+                v-model="mealRowTagsEnabled[data.item.name]"
+                v-bind:id="data.item.name"
+                class="mt-2"
+              >
                 <b-form-tags
                   input-id="tags-basic"
+                  :disabled="!mealRowTagsEnabled[data.item.name]"
                   v-model="data.item.tags"
                   tag-pills
                   @input="onTagChange($event, data.item)"
                 ></b-form-tags>
               </b-collapse>
               <b-button
-                v-b-toggle:[data.item.name]
-                variant="secondary"
+                :class="mealRowTagsEnabled[data.item.name] ? null : 'collapsed'"
+                :aria-expanded="
+                  mealRowTagsEnabled[data.item.name] ? 'true' : 'enabled'
+                "
+                :aria-controls="data.item.name"
+                :pressed.sync="mealRowTagsEnabled[data.item.name]"
+                variant="outline-secondary"
                 pill
                 size="sm"
-                >Toggle Collapse</b-button
+                ><small v-if="!mealRowTagsEnabled[data.item.name]">Edit</small>
+                <small v-else>Close</small></b-button
               >
             </div>
           </template>
@@ -180,7 +191,7 @@ export default {
       loading: true,
       errored: false,
       tagsPressed: {},
-      mealRowTagsDisabled: {},
+      mealRowTagsEnabled: {},
       numberOfMealsShown: 5,
     };
   },
@@ -223,7 +234,7 @@ export default {
         result = this.getOldestNMeals(meals, this.numberOfMealsShown);
       }
       for (var i = 0; i < result.length; i++) {
-        this.$set(this.mealRowTagsDisabled, result[i].name, true);
+        this.$set(this.mealRowTagsEnabled, result[i].name, false);
       }
       return result;
     },
