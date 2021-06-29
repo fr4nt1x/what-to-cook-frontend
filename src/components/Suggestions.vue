@@ -12,7 +12,7 @@
     <section v-else>
       <b-container fluid
         ><b-row cols="2" class="mb-5">
-          <b-col md="1" align-self="center">
+          <b-col md="1" cols="0" align-self="center">
             <b-button v-b-toggle.sidebar-1
               >{{ selectedDate | weekdayFromDate }}></b-button
             >
@@ -31,7 +31,7 @@
               </div>
             </b-sidebar>
           </b-col>
-          <b-col md="8">
+          <b-col md="11">
             <b-container fluid>
               <b-row no-gutters cols="7" class="mb-3">
                 <b-col
@@ -68,8 +68,8 @@
             </b-container>
           </b-col>
         </b-row>
-        <b-row cols="2">
-          <b-col md="1" align-self="center">
+        <b-row class="mb-5">
+          <b-col md="1" cols="0" align-self="center">
             <b-button
               v-for="tag in allTags"
               :pressed.sync="tagsPressed[tag]"
@@ -79,10 +79,10 @@
               >{{ tag }}</b-button
             >
           </b-col>
-          <b-col md="8">
+          <b-col md="11">
             <b-table
               foot-clone
-              fixed
+              responsive="sm"
               striped
               hover
               :items="computedMeals"
