@@ -10,142 +10,119 @@
     </section>
 
     <section v-else>
-      <b-container fluid
-        ><b-row cols="2" class="mb-5">
-          <b-col md="1" align-self="center">
-            <b-button v-b-toggle.sidebar-1
-              >{{ selectedDate | weekdayFromDate }}></b-button
+      <div v-if="loading">Loading...</div>
+      <b-container>
+        <b-row no-gutters cols="7">
+          <b-col v-for="date in currentDatesShown.slice(0, 7)" :key="date">
+            <b-card :sub-title="date"
+              ><b-list-group>
+                <b-list-group-item
+                  v-for="meal_index in currentDateToMeals[date]"
+                  :key="meal_index"
+                  >{{ allMeals[meal_index]["name"] }}</b-list-group-item
+                ></b-list-group
+              ></b-card
             >
-            <b-sidebar id="sidebar-1" title="Sidebar" shadow>
-              <div class="px-3 py-2">
-                <b-calendar v-model="selectedDate" value-as-date></b-calendar>
-                <div>
-                  <b-button
-                    size="sm"
-                    variant="outline-primary"
-                    class="ml-auto"
-                    @click="setToday"
-                    >Set Today</b-button
-                  >
-                </div>
-              </div>
-            </b-sidebar>
-          </b-col>
-          <b-col md="8">
-            <b-container fluid>
-              <b-row no-gutters cols="7" class="mb-3">
-                <b-col
-                  v-for="date in currentDatesShown.slice(0, 7)"
-                  :key="date"
-                >
-                  <b-card :sub-title="date | weekdayFromDate"
-                    ><b-list-group>
-                      <b-list-group-item
-                        v-for="meal_index in currentDateToMeals[date]"
-                        :key="meal_index"
-                        >{{ allMeals[meal_index]["name"] }}</b-list-group-item
-                      ></b-list-group
-                    ></b-card
-                  >
-                </b-col>
-              </b-row>
-              <b-row no-gutters cols="7">
-                <b-col
-                  v-for="date in currentDatesShown.slice(7, 14)"
-                  :key="date"
-                >
-                  <b-card :sub-title="date | weekdayFromDate"
-                    ><b-list-group>
-                      <b-list-group-item
-                        v-for="meal_index in currentDateToMeals[date]"
-                        :key="meal_index"
-                        >{{ allMeals[meal_index]["name"] }}</b-list-group-item
-                      ></b-list-group
-                    ></b-card
-                  >
-                </b-col>
-              </b-row>
-            </b-container>
           </b-col>
         </b-row>
-        <b-row cols="2">
-          <b-col md="1" align-self="center">
-            <b-button
-              v-for="tag in allTags"
-              :pressed.sync="tagsPressed[tag]"
-              pill
-              variant="primary"
-              :key="tag"
-              >{{ tag }}</b-button
+        <b-row no-gutters cols="7">
+          <b-col v-for="date in currentDatesShown.slice(7, 14)" :key="date">
+            <b-card :sub-title="date"
+              ><b-list-group>
+                <b-list-group-item
+                  v-for="meal_index in currentDateToMeals[date]"
+                  :key="meal_index"
+                  >{{ allMeals[meal_index]["name"] }}</b-list-group-item
+                ></b-list-group
+              ></b-card
             >
-          </b-col>
-          <b-col md="8">
-            <b-table
-              fixed
-              striped
-              hover
-              :items="computedMeals"
-              :fields="mealFields"
-            >
-              <template #cell(tags)="data">
-                <div>
-                  <b-button
-                    size="sm"
-                    v-for="tag in data.item.tags"
-                    :pressed.sync="tagsPressed[tag]"
-                    pill
-                    variant="primary"
-                    :key="tag"
-                    >{{ tag }}</b-button
-                  >
-                </div>
-                <div>
-                  <b-collapse
-                    v-model="mealRowTagsEnabled[data.item.name]"
-                    v-bind:id="data.item.name"
-                    class="mt-2"
-                  >
-                    <b-form-tags
-                      input-id="tags-basic"
-                      :disabled="!mealRowTagsEnabled[data.item.name]"
-                      v-model="data.item.tags"
-                      tag-pills
-                      @input="onTagChange($event, data.item)"
-                    ></b-form-tags>
-                  </b-collapse>
-                  <b-button
-                    :class="
-                      mealRowTagsEnabled[data.item.name] ? null : 'collapsed'
-                    "
-                    :aria-expanded="
-                      mealRowTagsEnabled[data.item.name] ? 'true' : 'enabled'
-                    "
-                    :aria-controls="data.item.name"
-                    :pressed.sync="mealRowTagsEnabled[data.item.name]"
-                    variant="outline-secondary"
-                    pill
-                    size="sm"
-                    ><small v-if="!mealRowTagsEnabled[data.item.name]"
-                      >Edit</small
-                    >
-                    <small v-else>Close</small></b-button
-                  >
-                </div>
-              </template>
-              <template #cell(add)="data">
-                <b-button
-                  type="submit"
-                  size="sm"
-                  variant="outline-primary"
-                  class="ml-auto"
-                  @click="addMealToCurrentDate(data.item)"
-                  >Add Meal</b-button
-                >
-              </template>
-            </b-table>
           </b-col>
         </b-row>
       </b-container>
+      <div>
+        <b-calendar v-model="selectedDate" value-as-date></b-calendar>
+        <div>
+          <b-button
+            size="sm"
+            variant="outline-primary"
+            class="ml-auto"
+            @click="setToday"
+            >Set Today</b-button
+          >
+        </div>
+      </div>
+
+      <div>
+        <b-button-group size="sm">
+          <b-button
+            v-for="tag in allTags"
+            :pressed.sync="tagsPressed[tag]"
+            pill
+            variant="primary"
+            :key="tag"
+            >{{ tag }}</b-button
+          >
+        </b-button-group>
+        <b-table
+          fixed
+          striped
+          hover
+          :items="computedMeals"
+          :fields="mealFields"
+        >
+          <template #cell(tags)="data">
+            <div>
+              <b-button
+                size="sm"
+                v-for="tag in data.item.tags"
+                :pressed.sync="tagsPressed[tag]"
+                pill
+                variant="primary"
+                :key="tag"
+                >{{ tag }}</b-button
+              >
+            </div>
+            <div>
+              <b-collapse
+                v-model="mealRowTagsEnabled[data.item.name]"
+                v-bind:id="data.item.name"
+                class="mt-2"
+              >
+                <b-form-tags
+                  input-id="tags-basic"
+                  :disabled="!mealRowTagsEnabled[data.item.name]"
+                  v-model="data.item.tags"
+                  tag-pills
+                  @input="onTagChange($event, data.item)"
+                ></b-form-tags>
+              </b-collapse>
+              <b-button
+                :class="mealRowTagsEnabled[data.item.name] ? null : 'collapsed'"
+                :aria-expanded="
+                  mealRowTagsEnabled[data.item.name] ? 'true' : 'enabled'
+                "
+                :aria-controls="data.item.name"
+                :pressed.sync="mealRowTagsEnabled[data.item.name]"
+                variant="outline-secondary"
+                pill
+                size="sm"
+                ><small v-if="!mealRowTagsEnabled[data.item.name]">Edit</small>
+                <small v-else>Close</small></b-button
+              >
+            </div>
+          </template>
+          <template #cell(add)="data">
+            <b-button
+              type="submit"
+              size="sm"
+              variant="outline-primary"
+              class="ml-auto"
+              @click="addMealToCurrentDate(data.item)"
+              >Add Meal</b-button
+            >
+          </template>
+        </b-table>
+      </div>
     </section>
   </div>
 </template>
@@ -158,26 +135,14 @@ export default {
   props: {
     msg: String,
   },
-  filters: {
-    weekdayFromDate: function (date) {
-      var dateObject = new Date(date);
-      var options = {
-        weekday: "long",
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-      };
-      return dateObject.toLocaleDateString("de-DE", options);
-    },
-  },
   methods: {
     convertDateToString: function (date) {
       let cDay = date.getDate();
-      let sDay = cDay.toString().padStart(2, "0");
-      let cMonth = date.getMonth() + 1;
-      let sMonth = cMonth.toString().padStart(2, "0");
+            let sDay = cDay.toString().padStart(2,'0')
+      let cMonth = date.getMonth() + 1
+      let sMonth = cMonth.toString().padStart(2,'0')
       let cYear = date.getFullYear();
-      return cYear + "-" + sMonth + "-" + sDay;
+      return cYear + "-" + sMonth+ "-" + sDay;
     },
     addMealToCurrentDate: function (meal) {
       var newLastDates = meal.last_dates;
