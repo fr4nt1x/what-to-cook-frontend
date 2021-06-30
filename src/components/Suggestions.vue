@@ -11,36 +11,8 @@
 
     <section v-else>
       <div v-if="loading">Loading...</div>
-      <b-container>
-        <b-row no-gutters cols="7">
-          <b-col v-for="date in currentDatesShown.slice(0, 7)" :key="date">
-            <b-card :sub-title="date"
-              ><b-list-group>
-                <b-list-group-item
-                  v-for="meal_index in currentDateToMeals[date]"
-                  :key="meal_index"
-                  >{{ allMeals[meal_index]["name"] }}</b-list-group-item
-                ></b-list-group
-              ></b-card
-            >
-          </b-col>
-        </b-row>
-        <b-row no-gutters cols="7">
-          <b-col v-for="date in currentDatesShown.slice(7, 14)" :key="date">
-            <b-card :sub-title="date"
-              ><b-list-group>
-                <b-list-group-item
-                  v-for="meal_index in currentDateToMeals[date]"
-                  :key="meal_index"
-                  >{{ allMeals[meal_index]["name"] }}</b-list-group-item
-                ></b-list-group
-              ></b-card
-            >
-          </b-col>
-        </b-row>
-      </b-container>
       <div>
-        <b-calendar v-model="selectedDate" value-as-date></b-calendar>
+        <b-calendar v-model="selectedDate"></b-calendar>
         <div>
           <b-button
             size="sm"
@@ -136,18 +108,9 @@ export default {
     msg: String,
   },
   methods: {
-    convertDateToString: function (date) {
-      let cDay = date.getDate();
-            let sDay = cDay.toString().padStart(2,'0')
-      let cMonth = date.getMonth() + 1
-      let sMonth = cMonth.toString().padStart(2,'0')
-      let cYear = date.getFullYear();
-      return cYear + "-" + sMonth+ "-" + sDay;
-    },
     addMealToCurrentDate: function (meal) {
       var newLastDates = meal.last_dates;
-
-      newLastDates.push(this.convertDateToString(this.selectedDate));
+      newLastDates.push(this.selectedDate);
       var uniqueDates = [...new Set(newLastDates)].sort();
 
       meal.last_dates = uniqueDates;
@@ -162,7 +125,11 @@ export default {
       console.log(meal);
     },
     setToday: function () {
-      this.selectedDate = new Date();
+      const now = new Date();
+      let cDay = now.getDate();
+      let cMonth = now.getMonth() + 1;
+      let cYear = now.getFullYear();
+      this.selectedDate = cYear + "-" + cMonth + "-" + cDay;
     },
     filterMealsByTags: function (meals, tags) {
       var filteredMeals = [];
@@ -267,10 +234,9 @@ export default {
       loading: true,
       errored: false,
       tagsPressed: {},
-      selectedDate: null,
+      selectedDate: "",
       mealRowTagsEnabled: {},
       numberOfMealsShown: 5,
-      numberOfDaysShown: 14,
     };
   },
   computed: {
@@ -317,50 +283,6 @@ export default {
       }
       for (var i = 0; i < result.length; i++) {
         this.$set(this.mealRowTagsEnabled, result[i].name, false);
-      }
-      return result;
-    },
-    currentDatesShown: function () {
-      var result = [];
-      var currentDate = new Date(this.selectedDate);
-      result.push(this.convertDateToString(currentDate));
-      for (var i = 0; i < this.numberOfDaysShown; i++) {
-        currentDate.setDate(currentDate.getDate() - 1);
-        result.push(this.convertDateToString(currentDate));
-      }
-      return result;
-    },
-    currentDateToMeals: function () {
-      var result = new Object();
-      var currentDate;
-      for (var i = 0; i < this.currentDatesShown.length; i++) {
-        currentDate = this.currentDatesShown[i];
-        if (currentDate in this.dateToMeals) {
-          result[currentDate] = this.dateToMeals[currentDate];
-        } else {
-          result[currentDate] = [];
-        }
-      }
-      return result;
-    },
-    dateToMeals: function () {
-      var result = new Object();
-      var meals = this.allMeals;
-      var currentDates = [];
-      var currentDate;
-      var currentArray;
-      for (var i = 0; i < meals.length; i++) {
-        currentDates = meals[i].last_dates;
-        for (var j = 0; j < currentDates.length; j++) {
-          currentDate = currentDates[j];
-          if (currentDate in result) {
-            currentArray = result[currentDate];
-            currentArray.push(i);
-            result[currentDate] = currentArray;
-          } else {
-            result[currentDate] = [i];
-          }
-        }
       }
       return result;
     },
