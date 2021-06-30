@@ -81,7 +81,6 @@
           </b-col>
           <b-col md="8">
             <b-table
-              foot-clone
               fixed
               striped
               hover
@@ -143,36 +142,6 @@
                   >Add Meal</b-button
                 >
               </template>
-              <template #foot(name)>
-                <b-form-input
-                  id="input-live"
-                  :state="newMealNameState"
-                  v-model="newMealName"
-                  placeholder="Enter new meal name"
-                  type="text"
-                ></b-form-input>
-              </template>
-              <template #foot(tags)>
-                <b-form-tags
-                  input-id="tags-basic"
-                  v-model="newMealTags"
-                  tag-pills
-                ></b-form-tags>
-              </template>
-              <template #foot(last_dates)>
-                <div>{{ convertDateToString(selectedDate) }}</div>
-              </template>
-              <template #foot(add)>
-                <b-button
-                  type="submit"
-                  size="sm"
-                  variant="outline-primary"
-                  class="ml-auto"
-                  :disabled="!newMealNameState"
-                  @click="addNewMeal($event)"
-                  >Add Meal</b-button
-                >
-              </template>
             </b-table>
           </b-col>
         </b-row>
@@ -210,25 +179,6 @@ export default {
       let cYear = date.getFullYear();
       return cYear + "-" + sMonth + "-" + sDay;
     },
-    addNewMeal: function () {
-      var newLastDates = [];
-      newLastDates.push(this.convertDateToString(this.selectedDate));
-      var newMeal = new Object();
-      newMeal.last_dates = newLastDates;
-      newMeal.tags = this.newMealTags;
-      newMeal.name = this.newMealName;
-
-      newMeal.count = 1;
-      axios
-        .post(process.env.VUE_APP_BACKEND_URL + "/add_meal", newMeal)
-        .then(function (response) {
-          console.log(response);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-      console.log(newMeal);
-    },
     addMealToCurrentDate: function (meal) {
       var newLastDates = meal.last_dates;
 
@@ -237,7 +187,7 @@ export default {
 
       meal.last_dates = uniqueDates;
       axios
-        .post(process.env.VUE_APP_BACKEND_URL + "/update_dates_for_meal", meal)
+        .post("http://localhost:8000/update_dates_for_meal", meal)
         .then(function (response) {
           console.log(response);
         })
@@ -336,7 +286,7 @@ export default {
       console.log(event);
       console.log(JSON.stringify(meal));
       axios
-        .post(process.env.VUE_APP_BACKEND_URL + "/change_tags_for_meal", meal)
+        .post("http://localhost:8000/change_tags_for_meal", meal)
         .then(function (response) {
           console.log(response);
         })
@@ -356,20 +306,9 @@ export default {
       mealRowTagsEnabled: {},
       numberOfMealsShown: 5,
       numberOfDaysShown: 14,
-      newMealName: "",
-      newMealTags: [],
     };
   },
   computed: {
-    newMealNameState: function () {
-      if (this.newMealName.length == 0) {
-        return false;
-      } else if (this.allMealNames.includes(this.newMealName)) {
-        return false;
-      }
-      return true;
-    },
-
     allTags: function () {
       var meals = this.allMeals;
       var tags = [];
@@ -396,13 +335,6 @@ export default {
       return this.allTags.filter((tag) => {
         return this.tagsPressed[tag];
       });
-    },
-    allMealNames: function () {
-      var names = [];
-      for (var i = 0; i < this.allMeals.length; i++) {
-        names.push(this.allMeals[i].name);
-      }
-      return names;
     },
     computedMeals: function () {
       var result = Array();
@@ -471,7 +403,7 @@ export default {
   mounted() {
     this.setToday();
     axios
-      .get(process.env.VUE_APP_BACKEND_URL + "/all_meals")
+      .get("http://localhost:8000/all_meals")
       .then((response) => {
         this.allMeals = response.data.meals;
       })
