@@ -174,6 +174,29 @@
                 >
               </template>
             </b-table>
+            <div>
+              <b>Add any existing meal:</b>
+              <b-form-select v-model="selectedExistingMeal">
+                <b-form-select-option :value="null"
+                  >Please select an existing Meal</b-form-select-option
+                >
+                <b-form-select-option
+                  v-for="meal in allMeals"
+                  :value="meal"
+                  v-bind:key="meal.name"
+                  >{{ meal.name }}</b-form-select-option
+                >
+              </b-form-select>
+              <b-button
+                type="submit"
+                size="sm"
+                variant="outline-primary"
+                class="ml-auto"
+                :disabled="!selectedExistingMeal"
+                @click="addMealToCurrentDate(selectedExistingMeal)"
+                >Add Meal</b-button
+              >
+            </div>
           </b-col>
         </b-row>
       </b-container>
@@ -228,6 +251,7 @@ export default {
           console.log(error);
         });
       console.log(newMeal);
+      window.location.reload();
     },
     addMealToCurrentDate: function (meal) {
       var newLastDates = meal.last_dates;
@@ -287,7 +311,7 @@ export default {
         if (currentMeal.last_dates.length == 0) {
           currentDate = oldestDate;
         } else {
-          parts = currentMeal.last_dates.sort()[0].split("-");
+          parts = currentMeal.last_dates.sort().reverse()[0].split("-");
           currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
         }
 
@@ -358,6 +382,7 @@ export default {
       numberOfDaysShown: 14,
       newMealName: "",
       newMealTags: [],
+      selectedExistingMeal: null,
     };
   },
   computed: {
