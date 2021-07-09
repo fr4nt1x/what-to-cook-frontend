@@ -1,0 +1,14 @@
+[Unit]
+Description=MealServerFrontend
+After=network.target
+
+[Service]
+ExecStart=<path>/start_frontend.sh
+WorkingDirectory=<path>
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
