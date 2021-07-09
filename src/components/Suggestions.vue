@@ -249,9 +249,10 @@ export default {
         })
         .catch(function (error) {
           console.log(error);
+        })
+        .finally(function () {
+          window.location.reload();
         });
-      console.log(newMeal);
-      window.location.reload();
     },
     addMealToCurrentDate: function (meal) {
       var newLastDates = meal.last_dates;
