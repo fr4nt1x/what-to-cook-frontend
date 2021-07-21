@@ -43,10 +43,18 @@
                       <b-list-group-item
                         v-for="meal_index in currentDateToMeals[date]"
                         :key="meal_index"
-                        >{{ allMeals[meal_index]["name"] }}</b-list-group-item
-                      ></b-list-group
-                    ></b-card
-                  >
+                        >{{ allMeals[meal_index]["name"] }}
+                        <b-button
+                          size="sm"
+                          variant="danger"
+                          class="ml-auto"
+                          @click="
+                            removeDateFromMeal(allMeals[meal_index], date)
+                          "
+                          ><font-awesome-icon
+                            :icon="['fa', 'calendar-minus']"
+                          ></font-awesome-icon></b-button></b-list-group-item></b-list-group
+                  ></b-card>
                 </b-col>
               </b-row>
               <b-row no-gutters cols="7">
@@ -132,6 +140,9 @@
                     <small v-else>Close</small></b-button
                   >
                 </div>
+              </template>
+              <template #cell(count)="data">
+                {{ data.item.last_dates.length }}
               </template>
               <template #cell(add)="data">
                 <b-button
@@ -232,6 +243,23 @@ export default {
       let sMonth = cMonth.toString().padStart(2, "0");
       let cYear = date.getFullYear();
       return cYear + "-" + sMonth + "-" + sDay;
+    },
+    removeDateFromMeal: function (meal, date) {
+      axios
+        .post(process.env.VUE_APP_BACKEND_URL + "/remove_date_from_meal", [
+          meal,
+          date,
+        ])
+        .then(function (response) {
+          const index = meal.last_dates.indexOf(date);
+          if (index > -1) {
+            meal.last_dates.splice(index, 1);
+          }
+          console.log(response);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     },
     addNewMeal: function () {
       var newLastDates = [];
@@ -377,7 +405,7 @@ export default {
       loading: true,
       errored: false,
       tagsPressed: {},
-      selectedDate: null,
+      selectedDate: new Date(),
       mealRowTagsEnabled: {},
       numberOfMealsShown: 5,
       numberOfDaysShown: 14,
@@ -495,7 +523,6 @@ export default {
     },
   },
   mounted() {
-    this.setToday();
     axios
       .get(process.env.VUE_APP_BACKEND_URL + "/all_meals")
       .then((response) => {
