@@ -67,10 +67,18 @@
                       <b-list-group-item
                         v-for="meal_index in currentDateToMeals[date]"
                         :key="meal_index"
-                        >{{ allMeals[meal_index]["name"] }}</b-list-group-item
-                      ></b-list-group
-                    ></b-card
-                  >
+                        >{{ allMeals[meal_index]["name"]
+                        }}<b-button
+                          size="sm"
+                          variant="danger"
+                          class="ml-auto"
+                          @click="
+                            removeDateFromMeal(allMeals[meal_index], date)
+                          "
+                          ><font-awesome-icon
+                            :icon="['fa', 'calendar-minus']"
+                          ></font-awesome-icon></b-button></b-list-group-item></b-list-group
+                  ></b-card>
                 </b-col>
               </b-row>
             </b-container>
