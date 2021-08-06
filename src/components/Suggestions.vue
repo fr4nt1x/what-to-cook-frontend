@@ -1,11 +1,18 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
-
+    <template>
+      <div class="locale-changer">
+        <select v-model="$i18n.locale">
+          <option v-for="(lang, i) in langs" :key="`Lang${i}`" :value="lang">
+            {{ lang }}
+          </option>
+        </select>
+      </div>
+    </template>
     <section v-if="errored">
       <p>
-        We're sorry, we're not able to retrieve this information at the moment,
-        please try back later
+        {{ $t("errorNotLoading") }}
       </p>
     </section>
 
