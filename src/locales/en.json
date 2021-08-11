@@ -1,4 +1,14 @@
 {
+  "addExistingMealHeader": "Add any existing meal:",
+  "addMeal": "Add Meal",
+  "close": "Close",
+  "count": "Count",
+  "add": "Add",
+  "lastDate":"Last Dates",
+  "edit": "Edit",
+  "enterNewMeal": "Enter new meal name",
+  "errorNotLoading": "We're sorry, we're not able to retrieve this information at the moment, please try back later.",
   "message": "What to cook?",
-  "errorNotLoading": "We're sorry, we're not able to retrieve this information at the moment, please try back later."
+  "selectExistingMeal": "Please select an existing Meal",
+  "setToday": "Set Today"
 }
