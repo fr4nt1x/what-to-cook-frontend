@@ -1,15 +1,6 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
-    <template>
-      <div class="locale-changer">
-        <select v-model="$i18n.locale">
-          <option v-for="(lang, i) in langs" :key="`Lang${i}`" :value="lang">
-            {{ lang }}
-          </option>
-        </select>
-      </div>
-    </template>
     <section v-if="errored">
       <p>
         {{ $t("errorNotLoading") }}
@@ -21,7 +12,7 @@
         ><b-row cols="2" class="mb-5">
           <b-col md="1" cols="0" align-self="center">
             <b-button v-b-toggle.sidebar-1
-              >{{ selectedDate | weekdayFromDate }}></b-button
+              >{{ weekdayFromDate(selectedDate) }}></b-button
             >
             <b-sidebar id="sidebar-1" title="Sidebar" shadow>
               <div class="px-3 py-2">
@@ -32,7 +23,7 @@
                     variant="outline-primary"
                     class="ml-auto"
                     @click="setToday"
-                    >Set Today</b-button
+                    >{{ $t("setToday") }}</b-button
                   >
                 </div>
               </div>
@@ -45,7 +36,7 @@
                   v-for="date in currentDatesShown.slice(0, 7)"
                   :key="date"
                 >
-                  <b-card :sub-title="date | weekdayFromDate"
+                  <b-card :sub-title="weekdayFromDate(date)"
                     ><b-list-group>
                       <b-list-group-item
                         v-for="meal_index in currentDateToMeals[date]"
@@ -69,7 +60,7 @@
                   v-for="date in currentDatesShown.slice(7, 14)"
                   :key="date"
                 >
-                  <b-card :sub-title="date | weekdayFromDate"
+                  <b-card :sub-title="weekdayFromDate(date)"
                     ><b-list-group>
                       <b-list-group-item
                         v-for="meal_index in currentDateToMeals[date]"
@@ -149,15 +140,21 @@
                     variant="outline-secondary"
                     pill
                     size="sm"
-                    ><small v-if="!mealRowTagsEnabled[data.item.name]"
-                      >Edit</small
-                    >
-                    <small v-else>Close</small></b-button
+                    ><small v-if="!mealRowTagsEnabled[data.item.name]">{{
+                      $t("edit")
+                    }}</small>
+                    <small v-else>{{ $t("close") }}</small></b-button
                   >
                 </div>
               </template>
+              <template #head(count)>
+                {{ $t("count") }}
+              </template>
               <template #cell(count)="data">
                 {{ data.item.last_dates.length }}
+              </template>
+              <template #head(add)>
+                {{ $t("add") }}
               </template>
               <template #cell(add)="data">
                 <b-button
@@ -166,15 +163,18 @@
                   variant="outline-primary"
                   class="ml-auto"
                   @click="addMealToCurrentDate(data.item)"
-                  >Add Meal</b-button
+                  >{{ $t("addMeal") }}</b-button
                 >
+              </template>
+              <template #head(last_dates)>
+                {{ $t("lastDate") }}
               </template>
               <template #foot(name)>
                 <b-form-input
                   id="input-live"
                   :state="newMealNameState"
                   v-model="newMealName"
-                  placeholder="Enter new meal name"
+                  :placeholder="$t('enterNewMeal')"
                   type="text"
                 ></b-form-input>
               </template>
@@ -196,16 +196,16 @@
                   class="ml-auto"
                   :disabled="!newMealNameState"
                   @click="addNewMeal($event)"
-                  >Add Meal</b-button
+                  >{{ $t("addMeal") }}</b-button
                 >
               </template>
             </b-table>
             <div>
-              <b>Add any existing meal:</b>
+              <b>{{ $t("addExistingMealHeader") }}</b>
               <b-form-select v-model="selectedExistingMeal">
-                <b-form-select-option :value="null"
-                  >Please select an existing Meal</b-form-select-option
-                >
+                <b-form-select-option :value="null">{{
+                  $t("selectExistingMeal")
+                }}</b-form-select-option>
                 <b-form-select-option
                   v-for="meal in allMeals"
                   :value="meal"
@@ -220,7 +220,7 @@
                 class="ml-auto"
                 :disabled="!selectedExistingMeal"
                 @click="addMealToCurrentDate(selectedExistingMeal)"
-                >Add Meal</b-button
+                >{{ $t("addMeal") }}</b-button
               >
             </div>
           </b-col>
@@ -238,7 +238,7 @@ export default {
   props: {
     msg: String,
   },
-  filters: {
+  methods: {
     weekdayFromDate: function (date) {
       var dateObject = new Date(date);
       var options = {
@@ -247,10 +247,12 @@ export default {
         month: "numeric",
         day: "numeric",
       };
-      return dateObject.toLocaleDateString("de-DE", options);
+      if (this.$i18n.locale == "en") {
+        return dateObject.toLocaleDateString("en-EN", options);
+      } else {
+        return dateObject.toLocaleDateString("de-DE", options);
+      }
     },
-  },
-  methods: {
     convertDateToString: function (date) {
       let cDay = date.getDate();
       let sDay = cDay.toString().padStart(2, "0");
