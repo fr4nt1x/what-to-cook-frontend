@@ -1,16 +1,19 @@
 <template>
   <div id="app">
-    <Suggestions msg="What to cook?" />
+    <localeChanger></localeChanger>
+    <Suggestions :msg="$t('message')" />
   </div>
 </template>
 
 <script>
 import Suggestions from "./components/Suggestions.vue";
+import localeChanger from "./components/localeChanger.vue";
 
 export default {
   name: "App",
   components: {
     Suggestions,
+    localeChanger,
   },
 };
 </script>

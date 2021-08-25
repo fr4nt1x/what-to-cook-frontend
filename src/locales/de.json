@@ -1,0 +1,14 @@
+{
+  "addExistingMealHeader": "Eine bereits existierende Mahlzeit eingeben:",
+  "addMeal": "Mahlzeit hinzufügen",
+  "add": "Hinzufügen",
+  "close": "Schließen",
+  "count": "Anzahl",
+  "edit": "Bearbeiten",
+  "lastDate":"Zuletzt gegessen",
+  "enterNewMeal": "Namen der neuen Mahlzeit eingeben.",
+  "errorNotLoading": "Die Informationen können momentan nicht geladen werden. Versuchen Sie es später erneut.",
+  "message": "Was kochen wir morgen?",
+  "selectExistingMeal": "Bereits existierende Mahlzeit auswählen",
+  "setToday": "Heutiges Datum auswählen"
+}
